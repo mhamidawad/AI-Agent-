@@ -22,6 +22,8 @@ jobs:
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_MCP_TOKEN: ${{ secrets.GH_MCP_TOKEN }}
+
         with:
           prompt: code-review
           agent-file: agent.toml
