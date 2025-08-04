@@ -1,0 +1,55 @@
+# agent.toml
+version = "1.0"
+[commands.my_agent]
+description = "Detailed description for users"
+instructions = """
+Your agent's behavior instructions here.
+Be specific about the task and expected outcomes.
+"""
+
+# Optional: Define arguments
+arguments = [
+   { name = "input_file", type = "string", required = true, description = "Input file path" },
+   { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" }
+]
+
+# Optional: MCP servers your agent uses
+mcpServers = """
+{
+    "shell": {
+      "command": "uvx",
+      "args": [
+        "mcp-shell-server"
+      ],
+      "env": {
+        "ALLOW_COMMANDS": "..."
+      }
+    },
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+      "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    }
+}
+"""
+
+# Optional: Define available tools
+tools = ["filesystem", "git", "shell", "github"]
+
+# Optional: Define execution strategy: "plan" for multi-step, "act" for direct execution
+execution_strategy = "act"
+
+# Optional: Define expected output structure
+output_schema = """
+{
+    "properties": {
+        "success": {"type": "boolean"},
+        "results": {"type": "array", "items": {"type": "string"}},
+        "score": {"type": "number"}
+    }
+}
+"""
+
+# Optional: Success condition for CI/CD
+exit_expression = "success"
