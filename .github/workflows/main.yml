@@ -21,7 +21,7 @@ jobs:
         uses: qodo-ai/command@v1
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
           prompt: code-review
           agent-file: agent.toml
