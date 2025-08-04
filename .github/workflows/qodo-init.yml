@@ -23,7 +23,8 @@ jobs:
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: qodo init
+          run: qodo init --no-builtin
+
 
       - name: Configure Git for GitHub Actions
         run: |
