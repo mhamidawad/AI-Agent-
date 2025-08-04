@@ -1,4 +1,4 @@
-name: Qodo Init and Commit
+name: Qodo Init with No-Builtin Servers
 
 on:
   workflow_dispatch:
@@ -8,30 +8,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js (Qodo requires Node)
+      - name: Set up Node.js (required by Qodo CLI)
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install Qodo CLI globally
+      - name: Install Qodo CLI
         run: npm install -g @qodo/command
 
-      - name: Run `qodo init` with --no-builtin to avoid server conflicts
+      - name: Run `qodo init --no-builtin`
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: qodo init --no-builtin
 
-      - name: Configure Git for GitHub Actions
+      - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit and push generated qodo.md
+      - name: Commit and push `qodo.md` if changed
         run: |
           git add qodo.md
-          git commit -m "chore: add qodo.md from qodo init" || echo "No changes to commit"
-          git push origin HEAD
+          git diff --cached --quiet qodo.md || git commit -m "chore: add/update qodo.md from qodo init"
+          git push
