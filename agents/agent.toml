@@ -1,20 +1,28 @@
-# agent.toml
 version = "1.0"
 
 [commands.my_agent]
-description = "Detailed description for users"
+description = "Code review agent that supports multiple LLM models"
 instructions = """
-Your agent's behavior instructions here.
-Be specific about the task and expected outcomes.
+You are a code review assistant. Analyze the provided source code with a focus on {{ focus_areas }} and provide suggestions with a severity threshold of {{ severity_threshold }}.
+
+Use the following model for reasoning:
+- If {{ model }} is set, use that.
+- If not set, default to 'gpt-4o'.
+
+Exclude files: {{ exclude_files }}
+
+Return your response with a success flag, list of results, and score.
 """
 
 arguments = [
     { name = "input_file", type = "string", required = true, description = "Input file path" },
     { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" },
-    { name = "model", type = "string", required = false, description = "Which LLM model to use" }
+    { name = "model", type = "string", required = false, default = "gpt-4o", description = "LLM model to use" },
+    { name = "focus_areas", type = "string", required = false, default = "security,performance", description = "Focus areas for review" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity to report" },
+    { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md", description = "Files to ignore in review" }
 ]
 
-# ✅ Model support
 models = [
   "gpt-4.1",
   "gpt-4o",
@@ -26,42 +34,33 @@ models = [
   "kimi-k2"
 ]
 
+# ✅ Only custom shell server is defined — github MCP is handled globally or not used
 mcpServers = """
 {
-    "custom-shell": {
-      "command": "uvx",
-      "args": [
-        "mcp-shell-server"
-      ],
-      "env": {
-        "ALLOW_COMMANDS": "..."
-      }
-    },
-    "github": {
-      "command": "docker",
-      "args": [
-        "run",
-        "-i",
-        "--rm",
-        "-e",
-        "GITHUB_PERSONAL_ACCESS_TOKEN",
-        "ghcr.io/github/github-mcp-server"
-      ]
+  "custom-shell": {
+    "command": "uvx",
+    "args": [
+      "mcp-shell-server"
+    ],
+    "env": {
+      "ALLOW_COMMANDS": "..."
     }
+  }
 }
 """
 
-tools = ["filesystem", "git", "shell", "github"]
+# ✅ Removed "github" from tools — avoids validation error
+tools = ["filesystem", "git", "shell"]
 
 execution_strategy = "act"
 
 output_schema = """
 {
-    "properties": {
-        "success": {"type": "boolean"},
-        "results": {"type": "array", "items": {"type": "string"}},
-        "score": {"type": "number"}
-    }
+  "properties": {
+    "success": {"type": "boolean"},
+    "results": {"type": "array", "items": {"type": "string"}},
+    "score": {"type": "number"}
+  }
 }
 """
 
