@@ -31,3 +31,4 @@ jobs:
             focus_areas=security,performance
             exclude_files=package-lock.json,*.md
             include_suggestions=true
+            models=gpt-4.1,gpt-4o,o3,o4-mini,claude-4-sonnet,gemini-2.5-pro,grok-4,kimi-k2
