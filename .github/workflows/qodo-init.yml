@@ -1,0 +1,34 @@
+name: Qodo Init and Commit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  qodo-init:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (Qodo requires Node)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Qodo CLI globally
+        run: npm install -g qodo
+
+      - name: Run `qodo init` to generate qodo.md
+        run: qodo init
+
+      - name: Configure Git for GitHub Actions
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit and push generated qodo.md
+        run: |
+          git add qodo.md
+          git commit -m "chore: add qodo.md from qodo init" || echo "No changes to commit"
+          git push origin HEAD
