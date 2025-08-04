@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "shell": {
+    "MOeshell": {
       "command": "uvx",
       "args": [
         "mcp-shell-server"
