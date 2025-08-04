@@ -9,8 +9,8 @@ Be specific about the task and expected outcomes.
 
 # Optional: Define arguments
 arguments = [
-   { name = "input_file", type = "string", required = true, description = "Input file path" },
-   { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" }
+    { name = "input_file", type = "string", required = true, description = "Input file path" },
+    { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" }
 ]
 
 # Optional: MCP servers your agent uses
@@ -26,15 +26,20 @@ mcpServers = """
       }
     },
     "github": {
-      "url": "https://api.githubcopilot.com/mcp/",
-      "headers": {
-      "Authorization": "Bearer ${GITHUB_PERSONAL_ACCESS_TOKEN}"
-      }
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ]
     }
 }
 """
 
-# Optional: Define available tools
+# Optional: Define tools you'd like your agent to be able to use
 tools = ["filesystem", "git", "shell", "github"]
 
 # Optional: Define execution strategy: "plan" for multi-step, "act" for direct execution
