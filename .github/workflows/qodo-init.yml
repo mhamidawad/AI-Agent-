@@ -1,4 +1,4 @@
-name: Qodo Init with No-Builtin Servers
+name: Qodo Init (with Built-ins)
 
 on:
   workflow_dispatch:
@@ -19,11 +19,11 @@ jobs:
       - name: Install Qodo CLI
         run: npm install -g @qodo/command
 
-      - name: Run `qodo init --no-builtin`
+      - name: Run `qodo init` (uses built-in servers)
         env:
           QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: qodo init --no-builtin
+        run: qodo init
 
       - name: Configure Git
         run: |
