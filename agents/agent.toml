@@ -1,26 +1,21 @@
 version = "1.0"
 
 [commands.my_agent]
-description = "Code review agent that supports multiple LLM models"
+description = "Code review agent with GitHub integration (no Docker)"
 instructions = """
-You are a code review assistant. Analyze the provided source code with a focus on {{ focus_areas }} and provide suggestions with a severity threshold of {{ severity_threshold }}.
+You are a code review assistant. Focus on {{ focus_areas }} and report issues above severity {{ severity_threshold }}.
 
-Use the following model for reasoning:
-- If {{ model }} is set, use that.
-- If not set, default to 'gpt-4o'.
-
-Exclude files: {{ exclude_files }}
-
-Return your response with a success flag, list of results, and score.
+Use {{ model }} if provided, otherwise fall back to gpt-4o.
+Use GitHub tools to comment on pull requests with actionable feedback.
 """
 
 arguments = [
-    { name = "input_file", type = "string", required = true, description = "Input file path" },
-    { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" },
-    { name = "model", type = "string", required = false, default = "gpt-4o", description = "LLM model to use" },
-    { name = "focus_areas", type = "string", required = false, default = "security,performance", description = "Focus areas for review" },
-    { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity to report" },
-    { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md", description = "Files to ignore in review" }
+    { name = "input_file", type = "string", required = true },
+    { name = "threshold", type = "number", required = false, default = 0.8 },
+    { name = "model", type = "string", required = false, default = "gpt-4o" },
+    { name = "focus_areas", type = "string", required = false, default = "security,performance" },
+    { name = "severity_threshold", type = "string", required = false, default = "medium" },
+    { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md" }
 ]
 
 models = [
@@ -34,14 +29,19 @@ models = [
   "kimi-k2"
 ]
 
-# ✅ Only custom shell server is defined — github MCP is handled globally or not used
+# ✅ MCP server using direct command, not Docker
 mcpServers = """
 {
+  "custom-github": {
+    "command": "uvx",
+    "args": ["mcp-github-server"],
+    "env": {
+      "GH_MCP_TOKEN": "${GH_MCP_TOKEN}"
+    }
+  },
   "custom-shell": {
     "command": "uvx",
-    "args": [
-      "mcp-shell-server"
-    ],
+    "args": ["mcp-shell-server"],
     "env": {
       "ALLOW_COMMANDS": "..."
     }
@@ -49,8 +49,7 @@ mcpServers = """
 }
 """
 
-# ✅ Removed "github" from tools — avoids validation error
-tools = ["filesystem", "git", "shell"]
+tools = ["filesystem", "git", "shell", "github"]
 
 execution_strategy = "act"
 
