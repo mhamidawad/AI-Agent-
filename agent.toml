@@ -1,7 +1,7 @@
 # Version of the agent configuration standard
 version = "1.0"
 
-model = "claude-4-opus"
+model = "claude-4-sonnet"
 
 imports = [
     "agents/agent.toml"
