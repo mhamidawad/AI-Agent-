@@ -1,5 +1,6 @@
 # agent.toml
 version = "1.0"
+
 [commands.my_agent]
 description = "Detailed description for users"
 instructions = """
@@ -7,16 +8,27 @@ Your agent's behavior instructions here.
 Be specific about the task and expected outcomes.
 """
 
-# Optional: Define arguments
 arguments = [
     { name = "input_file", type = "string", required = true, description = "Input file path" },
-    { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" }
+    { name = "threshold", type = "number", required = false, default = 0.8, description = "Quality threshold" },
+    { name = "model", type = "string", required = false, description = "Which LLM model to use" }
 ]
 
-# Optional: MCP servers your agent uses
+# ✅ Model support
+models = [
+  "gpt-4.1",
+  "gpt-4o",
+  "o3",
+  "o4-mini",
+  "claude-4-sonnet",
+  "gemini-2.5-pro",
+  "grok-4",
+  "kimi-k2"
+]
+
 mcpServers = """
 {
-    "shell": {
+    "custom-shell": {
       "command": "uvx",
       "args": [
         "mcp-shell-server"
@@ -39,13 +51,10 @@ mcpServers = """
 }
 """
 
-# Optional: Define tools you'd like your agent to be able to use
 tools = ["filesystem", "git", "shell", "github"]
 
-# Optional: Define execution strategy: "plan" for multi-step, "act" for direct execution
 execution_strategy = "act"
 
-# Optional: Define expected output structure
 output_schema = """
 {
     "properties": {
@@ -56,5 +65,4 @@ output_schema = """
 }
 """
 
-# Optional: Success condition for CI/CD
 exit_expression = "success"
