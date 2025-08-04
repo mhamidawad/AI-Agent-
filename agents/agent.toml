@@ -1,65 +1,58 @@
 version = "1.0"
 
-[commands.my_agent]
-description = "Code review agent with GitHub integration (no Docker)"
+[commands.review_pr]
+description = "Code review agent for GitHub PRs, focused on security and performance."
 instructions = """
-You are a code review assistant. Focus on {{ focus_areas }} and report issues above severity {{ severity_threshold }}.
+You are a senior code reviewer. Review the diff between the base and head branches of a GitHub pull request.
 
-Use {{ model }} if provided, otherwise fall back to gpt-4o.
-Use GitHub tools to comment on pull requests with actionable feedback.
+Your tasks:
+- Identify code smells, vulnerabilities, and inefficiencies.
+- Focus on security and performance based on severity threshold.
+- Exclude minor or stylistic concerns unless critical.
+- Return actionable suggestions using best practices.
+
+If the diff is empty or non-code-related (e.g., docs), skip review.
 """
 
 arguments = [
-    { name = "input_file", type = "string", required = true },
-    { name = "threshold", type = "number", required = false, default = 0.8 },
-    { name = "model", type = "string", required = false, default = "gpt-4o" },
-    { name = "focus_areas", type = "string", required = false, default = "security,performance" },
-    { name = "severity_threshold", type = "string", required = false, default = "medium" },
-    { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md" }
+  { name = "target_branch", type = "string", required = true, description = "Branch to compare against" },
+  { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity to report (low, medium, high)" },
+  { name = "focus_areas", type = "string", required = false, default = "security,performance", description = "Comma-separated list of focus areas" },
+  { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md", description = "Glob pattern for files to ignore" },
+  { name = "include_suggestions", type = "boolean", required = false, default = true, description = "Whether to include code suggestions" },
+  { name = "models", type = "string", required = false, default = "gpt-4o,o4-mini", description = "Comma-separated fallback models" }
 ]
 
-models = [
-  "gpt-4.1",
-  "gpt-4o",
-  "o3",
-  "o4-mini",
-  "claude-4-sonnet",
-  "gemini-2.5-pro",
-  "grok-4",
-  "kimi-k2"
-]
-
-# ✅ MCP server using direct command, not Docker
+# Custom MCP servers (used with --no-builtin)
 mcpServers = """
 {
-  "custom-github": {
-    "command": "uvx",
-    "args": ["mcp-github-server"],
-    "env": {
-      "GH_MCP_TOKEN": "${GH_MCP_TOKEN}"
-    }
-  },
-  "custom-shell": {
+  "custom_shell": {
     "command": "uvx",
     "args": ["mcp-shell-server"],
     "env": {
-      "ALLOW_COMMANDS": "..."
+      "ALLOW_COMMANDS": "*"
+    }
+  },
+  "github": {
+    "command": "gh",
+    "args": ["api", "--method=POST"],
+    "env": {
+      "GITHUB_TOKEN": "${GH_TOKEN}"
     }
   }
 }
 """
 
-tools = ["filesystem", "git", "shell", "custom-github"]
-
+tools = ["filesystem", "git", "custom_shell", "github"]
 
 execution_strategy = "act"
 
 output_schema = """
 {
   "properties": {
-    "success": {"type": "boolean"},
-    "results": {"type": "array", "items": {"type": "string"}},
-    "score": {"type": "number"}
+    "success": { "type": "boolean" },
+    "results": { "type": "array", "items": { "type": "string" } },
+    "score": { "type": "number" }
   }
 }
 """
