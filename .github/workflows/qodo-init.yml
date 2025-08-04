@@ -17,7 +17,8 @@ jobs:
           node-version: 20
 
       - name: Install Qodo CLI
-        run: npm install -g @qodo/command
+        run: npm install -g @qodo/command --legacy-peer-deps
+
 
       - name: Run `qodo init` (uses built-in servers)
         env:
