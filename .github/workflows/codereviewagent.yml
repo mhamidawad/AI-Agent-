@@ -24,7 +24,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           prompt: code-review
-          agent-file: path/to/agent.toml
+          agent-file: agent.toml
           key-value-pairs: |
             target_branch=${{ github.base_ref }}
             severity_threshold=medium
