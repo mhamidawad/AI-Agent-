@@ -3,47 +3,48 @@ version = "1.0"
 [commands.review_pr]
 description = "Code review agent for GitHub PRs, focused on security and performance."
 instructions = """
-You are a senior code reviewer. Review the diff between the base and head branches of a GitHub pull request.
-
-Your tasks:
-- Identify code smells, vulnerabilities, and inefficiencies.
-- Focus on security and performance based on severity threshold.
-- Exclude minor or stylistic concerns unless critical.
-- Return actionable suggestions using best practices.
-
-If the diff is empty or non-code-related (e.g., docs), skip review.
+You are a senior code reviewer. Review code diffs in PRs for security and performance concerns.
+Return only suggestions above the severity threshold, and skip docs or config-only changes.
 """
 
 arguments = [
-  { name = "target_branch", type = "string", required = true, description = "Branch to compare against" },
-  { name = "severity_threshold", type = "string", required = false, default = "medium", description = "Minimum severity to report (low, medium, high)" },
-  { name = "focus_areas", type = "string", required = false, default = "security,performance", description = "Comma-separated list of focus areas" },
-  { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md", description = "Glob pattern for files to ignore" },
-  { name = "include_suggestions", type = "boolean", required = false, default = true, description = "Whether to include code suggestions" },
-  { name = "models", type = "string", required = false, default = "gpt-4o,o4-mini", description = "Comma-separated fallback models" }
+  { name = "target_branch", type = "string", required = true },
+  { name = "severity_threshold", type = "string", required = false, default = "medium" },
+  { name = "focus_areas", type = "string", required = false, default = "security,performance" },
+  { name = "exclude_files", type = "string", required = false, default = "package-lock.json,*.md" },
+  { name = "include_suggestions", type = "boolean", required = false, default = true },
+  { name = "models", type = "string", required = false, default = "gpt-4o,o4-mini" }
 ]
 
-# Custom MCP servers (used with --no-builtin)
+# Custom MCP servers required when using --no-builtin
 mcpServers = """
 {
   "custom_shell": {
     "command": "uvx",
     "args": ["mcp-shell-server"],
-    "env": {
-      "ALLOW_COMMANDS": "*"
-    }
+    "env": { "ALLOW_COMMANDS": "*" }
   },
   "github": {
     "command": "gh",
     "args": ["api", "--method=POST"],
-    "env": {
-      "GITHUB_TOKEN": "${GH_TOKEN}"
-    }
+    "env": { "GITHUB_TOKEN": "${GH_TOKEN}" }
+  },
+  "git": {
+    "command": "uvx",
+    "args": ["mcp-git-server"]
+  },
+  "filesystem": {
+    "command": "uvx",
+    "args": ["mcp-fs-server"]
+  },
+  "ripgrep": {
+    "command": "uvx",
+    "args": ["mcp-ripgrep-server"]
   }
 }
 """
 
-tools = ["filesystem", "git", "custom_shell", "github"]
+tools = ["git", "filesystem", "ripgrep", "github", "custom_shell"]
 
 execution_strategy = "act"
 
