@@ -26,7 +26,8 @@ jobs:
           GH_MCP_TOKEN: ${{ secrets.GH_MCP_TOKEN }}
 
         with:
-          prompt: code-review --no-builtin
+          prompt: code-review
+          no-builtin: true   # ✅ This is the correct way to disable built-ins
           agent-file: agent.toml
           key-value-pairs: |
             target_branch=${{ github.base_ref }}
