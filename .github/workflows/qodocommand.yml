@@ -15,9 +15,8 @@ inputs:
   agentfile:
     description: 'DEPRECATED: Use agent-file instead. Path to custom agent.toml file'
     required: false
-    deprecationMessage: 'The agentfile input has been deprecated. Please use agent-file instead.'
   key-value-pairs:
-    description: 'Additional key-value pairs as JSON object or multiline string (e.g., {"key1": "value1", "key2": "value2"} or key1=value1 key2=value2)'
+    description: 'Additional key-value pairs as JSON object or multiline string'
     required: false
   qodo-version:
     description: 'Version of @qodo/command to install (defaults to latest)'
@@ -32,42 +31,30 @@ runs:
       with:
         node-version: '20'
 
-    - name: Install dependencies
+    - name: Install dependencies and uvx
       shell: bash
       run: |
-        # Install jq for JSON parsing
         if ! command -v jq &> /dev/null; then
           sudo apt-get update && sudo apt-get install -y jq
         fi
-        
-        # Verify npx is available (should be installed with Node.js)
+
         if ! command -v npx &> /dev/null; then
-          echo "Error: npx is not available. This should have been installed with Node.js."
+          echo "Error: npx is not available."
           exit 1
-        else
-          echo "npx is available: $(npx --version)"
         fi
-        
-        # Install uv (which includes uvx)
+
         if ! command -v uvx &> /dev/null; then
           echo "Installing uv..."
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          # Add uv to PATH for all subsequent steps
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-          # Add to PATH for the current step
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.local/bin:$PATH"
-          # Verify installation
-          if command -v uvx &> /dev/null; then
-            echo "uvx is now available: $(uvx --version)"
-          else
-            echo "Error: Failed to install uvx"
+          if ! command -v uvx &> /dev/null; then
+            echo "Error: uvx failed to install"
             exit 1
           fi
-        else
-          echo "uvx is already available: $(uvx --version)"
         fi
 
-    - name: Install Qodo Command
+    - name: Install Qodo CLI
       shell: bash
       run: |
         if [ "${{ inputs.qodo-version }}" = "latest" ]; then
@@ -79,61 +66,42 @@ runs:
     - name: Run Qodo Command
       shell: bash
       run: |
-        # Build the command
         QODO_CMD="qodo --ci"
-        
-        # Add model if specified
-        if [ ! -z "${{ inputs.model }}" ]; then
+
+        if [ -n "${{ inputs.model }}" ]; then
           QODO_CMD="$QODO_CMD --model=${{ inputs.model }}"
         fi
-        
-        # Add agent-file - handle both new and old parameter names for backward compatibility
+
         AGENT_FILE=""
-        if [ ! -z "${{ inputs.agent-file }}" ]; then
+        if [ -n "${{ inputs.agent-file }}" ]; then
           AGENT_FILE="${{ inputs.agent-file }}"
-        elif [ ! -z "${{ inputs.agentfile }}" ]; then
+        elif [ -n "${{ inputs.agentfile }}" ]; then
           echo "::warning::The 'agentfile' input is deprecated. Please use 'agent-file' instead."
           AGENT_FILE="${{ inputs.agentfile }}"
         fi
-        
-        if [ ! -z "$AGENT_FILE" ]; then
+
+        if [ -n "$AGENT_FILE" ]; then
           QODO_CMD="$QODO_CMD --agent-file=$AGENT_FILE"
         else
-          # Use default agent-file from action directory
           QODO_CMD="$QODO_CMD --agent-file=${{ github.action_path }}/examples/agent.toml"
         fi
-        
-        # Parse and add key-value pairs
-        if [ ! -z "${{ inputs.key-value-pairs }}" ]; then
-          # Check if input is JSON format
-          if echo "${{ inputs.key-value-pairs }}" | jq -e . >/dev/null 2>&1; then
-            # Parse JSON and convert to --set key=value format
+
+        if [ -n "${{ inputs.key-value-pairs }}" ]; then
+          if echo "${{ inputs.key-value-pairs }}" | jq -e . > /dev/null 2>&1; then
             PAIRS=$(echo "${{ inputs.key-value-pairs }}" | jq -r 'to_entries | .[] | "--set \(.key)=\(.value)"' | tr '\n' ' ')
             QODO_CMD="$QODO_CMD $PAIRS"
           else
-            # Assume it's in key=value format separated by spaces or newlines
-            # Convert each key=value to --set key=value
-            PAIRS=""
             while IFS= read -r line; do
-              # Skip empty lines
-              if [ ! -z "$line" ]; then
-                # Extract key and value from key=value format
-                if [[ "$line" == *"="* ]]; then
-                  PAIRS="$PAIRS --set $line"
-                fi
+              if [ -n "$line" ] && [[ "$line" == *"="* ]]; then
+                QODO_CMD="$QODO_CMD --set $line"
               fi
             done <<< "${{ inputs.key-value-pairs }}"
-            QODO_CMD="$QODO_CMD $PAIRS"
           fi
         fi
-        
-        # Add the prompt at the end
+
         QODO_CMD="$QODO_CMD \"${{ inputs.prompt }}\""
-        
-        # Echo the command for debugging
+
         echo "Running: $QODO_CMD"
-        
-        # Execute the command
         eval $QODO_CMD
 
 branding:
