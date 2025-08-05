@@ -1,38 +1,18 @@
-name: Code Review Agent
+- name: Run code review agent
+  uses: qodo-ai/command@v1
+  env:
+    QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
+    GH_TOKEN: ${{ secrets.GH_TOKEN }}
+    GH_MCP_TOKEN: ${{ secrets.GH_MCP_TOKEN }}
 
-on:
-  workflow_dispatch:
-    branches: [main, develop]
-
-jobs:
-  code-review:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: write
-      checks: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Run code review agent
-        uses: qodo-ai/command@v1
-        env:
-          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          GH_MCP_TOKEN: ${{ secrets.GH_MCP_TOKEN }}
-
-        with:
-          prompt: code-review
-          no-builtin: true   # ✅ This is the correct way to disable built-ins
-          agent-file: agent.toml
-          key-value-pairs: |
-            target_branch=${{ github.base_ref }}
-            severity_threshold=medium
-            focus_areas=security,performance
-            exclude_files=package-lock.json,*.md
-            include_suggestions=true
-            models=gpt-4.1,gpt-4o,o3,o4-mini,claude-4-sonnet,gemini-2.5-pro,grok-4,kimi-k2
+  with:
+    prompt: code-review
+    no-builtin: true  # ✅ Properly disables built-in servers to avoid conflict
+    agent-file: agent.toml
+    key-value-pairs: |
+      target_branch=${{ github.base_ref }}
+      severity_threshold=medium
+      focus_areas=security,performance
+      exclude_files=package-lock.json,*.md
+      include_suggestions=true
+      models=gpt-4.1,gpt-4o,o3,o4-mini,claude-4-sonnet,gemini-2.5-pro,grok-4,kimi-k2
