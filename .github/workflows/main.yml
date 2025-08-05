@@ -24,6 +24,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           GH_MCP_TOKEN: ${{ secrets.GH_MCP_TOKEN }}
 
+          
+
         with:
           prompt: code-review
           agent-file: agent.toml
@@ -34,3 +36,5 @@ jobs:
             exclude_files=package-lock.json,*.md
             include_suggestions=true
             models=gpt-4.1,gpt-4o,o3,o4-mini,claude-4-sonnet,gemini-2.5-pro,grok-4,kimi-k2
+          env:
+          QODO_API_KEY: ${{ secrets.QODO_API_KEY }}
