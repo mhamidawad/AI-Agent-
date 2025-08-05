@@ -1,0 +1,20 @@
+name: Run Qodo CLI Commands
+
+on:
+  workflow_dispatch:
+
+jobs:
+  qodo-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Install Qodo CLI (if not installed globally)
+        run: |
+          npm install -g qodo-cli  # Or the appropriate command if different
+
+      - name: 🧪 Run Qodo command
+        run: |
+          qodo --help              # Replace this with your real Qodo command
